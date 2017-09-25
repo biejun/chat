@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta charset="UTF-8">
+	<!--360浏览器-->
+	<meta name="renderer" content="webkit">
+	<!--其它双核浏览器-->
+	<meta name="force-rendering" content="webkit">
+	<!--使用GCF或高版本IE内核进行渲染-->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+	<link rel="stylesheet" href="src/css/reset.css"/>
+	<link rel="stylesheet" href="src/css/index.css"/>
+	<link rel="stylesheet" href="src/css/emoji.css"/>
+	<link rel="stylesheet" href="src/css/monokai-sublime.css"/>
+	<title><%=title%></title>
+</head>
+<body>
+
+	<div id="join" class="component join">
+		<div class="vertical-midden">
+			<div class="join-box">
+				<h3>尊姓大名</h3>
+				<div class="join-input"><input type="text" id="username" class="join-input-text"></div>
+			</div>
+		</div>
+	</div>
+	<div id="chat" class="component chat">
+		<div class="vertical-midden">
+			<div class="chat-box">
+				<div class="chat-head">
+					<button type="button" id="options" class="options">
+						<span>o</span>
+						<span>o</span>
+						<span>o</span>
+					</button>
+					<h2><%=title%></h2>
+					<div id="options-box" class="options-box" style="display:none">
+						<ul>
+							<li><a href="javascript:;">插入代码</a></li>
+							<li><a href="javascript:;">查看成员</a></li>
+						</ul>
+					</div>
+				</div>
+				<div class="chat-body" id="message">
+					<div class="message">
+						<% if(chats){%>
+							<% chats.forEach(function(chat){ %>
+								<% if(chat.type == 'notify'){ %>
+									<p class="notify"><span><%=chat.msg%></span></p>
+								<% }else{ %>
+									<div class="message-box">
+										<div class="message-info">
+											<a href="javascript:;" class="username"><%=chat.username%></a>
+											<span class="time"><%=chat.time%></span>
+										</div>
+										<div class="message-text">
+											<%-chat.msg%>
+										</div>
+									</div>
+								<% } %>
+							<% }); %>
+							<% if(chats.length>10){%>
+							<p class="notify"><span>以上为历史聊天记录</span></p>
+							<% } %>
+						<% } %>
+					</div>
+				</div>
+				<div class="chat-foot">
+					<div class="chat-input-box">
+						<input type="text" class="chat-input" placeholder="说点儿什么吧..." data-emojiable="true">
+						<input type="submit" class="chat-btn" value="发送" id="chat-btn" disabled>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="mask" class="component mask">
+		<div id="close" class="close">&times;</div>
+		<div class="vertical-midden">
+			<div class="sp markdown-edit">
+				<p>支持MARKDOWN语法</p>
+				<textarea id="markdown"></textarea>
+				<button type="button" id="submitMsg">发布</button>
+			</div>
+			<div class="sp user-list">
+				<% if(users){%>
+					<ul>
+						<% users.forEach(function(user){%>
+						<li>
+							<span class="status <% if(user.status === '1'){%>online<%}else{%>not-online<%}%>"></span>
+							<a href="javascript:at('<%=user.id%>');">@<%=user.username%></a>
+						</li>
+						<% });%>
+					</ul>
+				<% }%>
+			</div>
+		</div>
+	</div>
+
+	<script src="src/js/jquery-1.7.2.min.js"></script>
+	<script src="src/js/socket.io.js"></script>
+	<script src="src/js/config.js"></script>
+	<script src="src/js/util.js"></script>
+	<script src="src/js/jquery.emojiarea.js"></script>
+	<script src="src/js/emoji-picker.js"></script>
+	<script src="src/js/marked.js"></script>
+	<script src="src/js/highlight.js"></script>
+	<script src="src/js/index.js"></script>
+	<script>
+		$(function(){
+			window.emojiPicker = new EmojiPicker({
+				emojiable_selector: '[data-emojiable=true]',
+				assetsPath: 'src/img/',
+				popupButtonClasses: 'fa fa-smile-o'
+			});
+			window.emojiPicker.discover();
+
+			var $optionsBox = $('#options-box');
+			$('#options').click(function(e){
+				e.stopPropagation();
+				$optionsBox.toggle(200);
+			});
+			$(document).on('click',function(event){
+	              if(!$optionsBox.is(event.target) && $optionsBox.has(event.target).length === 0){
+	                $optionsBox.hide();
+	              }
+			});
+			$('#options-box a').click(function(){
+				var i = $(this).parent().index();
+				$('#options').trigger('click');
+				$('#mask').css('display','table');
+				$('.sp').hide().eq(i).show();
+			});
+			$('#close').click(function(){
+				$('#mask').hide();
+			});
+			$('#message').scrollTop($('#message')[0].scrollHeight);
+			$('pre code').each(function(i, block) {
+				hljs.highlightBlock(block);
+			});
+		});
+	</script>
+</body>
+</html>
